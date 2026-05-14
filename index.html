@@ -19,8 +19,8 @@
         :root {
             --primary: #00E5FF;
             --primary-glow: rgba(0, 229, 255, 0.4);
-            --bg-glass: rgba(5, 10, 15, 0.85); 
-            --border-glass: rgba(0, 229, 255, 0.25);
+            --bg-glass: rgba(5, 10, 15, 0.5); /* Сделал еще прозрачнее */
+            --border-glass: rgba(0, 229, 255, 0.35);
             --text-muted: #8b9bb4;
             --danger: #FF3366;
             --danger-glow: rgba(255, 51, 102, 0.6);
@@ -35,6 +35,23 @@
             overflow: hidden; user-select: none;
         }
 
+        /* ----------------------------------------------------
+           ПОРТРЕТНАЯ ЗАГЛУШКА
+           ---------------------------------------------------- */
+        #rotate-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 99999999; display: none; 
+            flex-direction: column; justify-content: center; align-items: center; text-align: center;
+        }
+        #rotate-overlay svg { width: 80px; height: 80px; fill: var(--primary); animation: rotatePhone 2s infinite ease-in-out; margin-bottom: 20px;}
+        #rotate-overlay h2 { font-family: 'Space Mono', monospace; color: var(--primary); font-size: 1.5rem; letter-spacing: 2px;}
+        @keyframes rotatePhone { 0% { transform: rotate(0deg); } 50% { transform: rotate(-90deg); } 100% { transform: rotate(-90deg); } }
+
+        @media screen and (orientation: portrait) and (max-width: 900px) {
+            #rotate-overlay { display: flex; }
+        }
+
+        /* Базовые стили */
         #skip-btn {
             position: absolute; top: 3vh; right: 3vw; z-index: 9999999;
             background: rgba(0,0,0,0.5); border: 1px solid var(--border-glass);
@@ -76,8 +93,6 @@
         #video-layers { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
         
         #bg-loop { width: 100%; height: 100%; object-fit: cover; opacity: 0; position: absolute; top: 0; left: 0; z-index: 1; transition: filter 1.5s ease; }
-        
-        /* ВАЖНО: opacity: 0.01 спасает от бага iOS Safari, при котором видео не рендерит кадры */
         #event-video { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 2; display: none; opacity: 0.01; }
 
         #boot-screen {
@@ -96,16 +111,16 @@
 
         #hud-container {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; display: none; flex-direction: column;
-            padding: 4vh 4vw; box-sizing: border-box; background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, transparent 40%, rgba(0,0,0,0.85) 100%);
+            padding: 2vh 4vw; box-sizing: border-box; background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, transparent 20%, rgba(0,0,0,0.9) 100%);
             opacity: 0; overflow-y: auto; 
         }
 
-        .top-nav { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; margin-bottom: 2vh; border-bottom: 1px solid var(--border-glass); pointer-events: auto; flex-wrap: wrap; gap: 15px;}
-        .sys-logo { font-weight: 900; font-size: 1.8rem; color: #fff; letter-spacing: 4px; line-height: 1.2; text-transform: uppercase; }
-        .sys-logo span { color: var(--primary); font-size: 0.8rem; display: block; letter-spacing: 6px; font-family: 'Space Mono', monospace; text-shadow: 0 0 10px var(--primary-glow);}
+        .top-nav { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; margin-bottom: 1vh; border-bottom: 1px solid var(--border-glass); pointer-events: auto; flex-wrap: wrap; gap: 15px;}
+        .sys-logo { font-weight: 900; font-size: 1.5rem; color: #fff; letter-spacing: 4px; line-height: 1.2; text-transform: uppercase; position: relative;}
+        .sys-logo span { color: var(--primary); font-size: 0.7rem; display: block; letter-spacing: 6px; font-family: 'Space Mono', monospace; text-shadow: 0 0 10px var(--primary-glow);}
         
-        .tabs { display: flex; gap: 5px; background: rgba(0,0,0,0.5); padding: 6px; border-radius: 8px; border: 1px solid var(--border-glass); backdrop-filter: blur(10px); flex-wrap: wrap; justify-content: center;}
-        .tab-btn { background: transparent; border: none; color: var(--text-muted); padding: 10px 20px; font-family: 'Space Mono', monospace; font-size: 0.85rem; font-weight: 700; cursor: pointer; text-transform: uppercase; border-radius: 4px; transition: 0.3s; }
+        .tabs { display: flex; gap: 5px; background: rgba(0,0,0,0.5); padding: 4px; border-radius: 8px; border: 1px solid var(--border-glass); backdrop-filter: blur(10px); flex-wrap: wrap; justify-content: center;}
+        .tab-btn { background: transparent; border: none; color: var(--text-muted); padding: 8px 16px; font-family: 'Space Mono', monospace; font-size: 0.8rem; font-weight: 700; cursor: pointer; text-transform: uppercase; border-radius: 4px; transition: 0.3s; }
         .tab-btn.active { color: #000; background: var(--primary); box-shadow: 0 0 15px var(--primary-glow); }
 
         #tab-loader {
@@ -191,42 +206,68 @@
         .achievements-list li { background: rgba(255,255,255,0.05); padding: 12px 15px; border-radius: 8px; margin-bottom: 10px; border-left: 3px solid var(--success); font-size: 0.85rem; display: flex; align-items: center; gap: 10px; color: #fff;}
         .achievements-list li span { font-family: 'Space Mono', monospace; color: var(--success); font-weight: bold; font-size: 0.75rem; text-shadow: 0 0 5px rgba(0, 250, 154, 0.5);}
 
-        /* ВКЛАДКА ГАЛЕРЕИ */
-        #tab-gallery { justify-content: center; align-items: center; pointer-events: auto;}
-        .gallery-container { width: 95%; max-width: 1200px; height: 75vh; background: var(--bg-glass); border: 1px solid var(--border-glass); border-radius: 16px; backdrop-filter: blur(25px); padding: 20px; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,0.6); margin: 0 auto;}
-        .gallery-screen { flex: 1; width: 100%; border-radius: 12px; overflow: hidden; position: relative; background: #030508; box-shadow: inset 0 0 30px rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; border: 1px solid rgba(255,255,255,0.05);}
-        .gallery-item { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 0.5s ease; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px);}
+        /* ----------------------------------------------------
+           ПОЛНОСТЬЮ ИСПРАВЛЕННАЯ ГАЛЕРЕЯ (Больше никакой черной тьмы)
+           ---------------------------------------------------- */
+        #tab-gallery { padding: 0; margin: 0; width: 100%; height: 100%; pointer-events: auto; }
+        .gallery-container { 
+            width: 100%; height: 100%;
+            display: flex; flex-direction: column; position: relative;
+        }
+        .gallery-screen { 
+            flex: 1; width: 100%; position: relative; 
+            background: rgba(10, 15, 20, 0.4); /* Прозрачный фон с легким тинтом */
+            backdrop-filter: blur(20px); /* Блюрит фон (видео с дорогой), делая его крутым фоном для фото */
+            border: 1px solid rgba(0, 229, 255, 0.15); 
+            border-radius: 12px;
+            display: flex; justify-content: center; align-items: center; overflow: hidden;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
+        }
+        .gallery-item { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            opacity: 0; transition: opacity 0.5s ease; 
+            display: flex; justify-content: center; align-items: center; 
+            background: transparent; /* Убрал черный фон из самих карточек */
+        }
         .gallery-item.active { opacity: 1; z-index: 2; }
-        .gallery-img { width: 100%; height: 100%; object-fit: contain; drop-shadow: 0 10px 20px rgba(0,0,0,0.8); }
+        .gallery-img { max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 20px 30px rgba(0,0,0,0.9)); }
+        
         .no-data-fallback { display: none; flex-direction: column; align-items: center; color: var(--text-muted); font-family: 'Space Mono', monospace; text-align: center; padding: 20px;}
         .no-data-fallback svg { width: 60px; height: 60px; fill: var(--text-muted); margin-bottom: 15px; opacity: 0.5;}
         
-        .gallery-controls { display: flex; justify-content: center; gap: 20px; margin-top: 20px; flex-wrap: wrap;}
-        .gal-btn { padding: 12px 35px; background: rgba(0, 229, 255, 0.05); border: 1px solid var(--primary); color: var(--primary); border-radius: 6px; cursor: pointer; font-family: 'Space Mono', monospace; font-size: 0.85rem; font-weight: bold; transition: all 0.2s; text-transform: uppercase; }
-        .gal-btn:hover { background: var(--primary); color: #000; box-shadow: 0 0 15px var(--primary-glow);}
+        .gallery-controls { 
+            position: absolute; bottom: 5vh; left: 0; width: 100%; 
+            display: flex; justify-content: center; gap: 20px; z-index: 10; pointer-events: none;
+        }
+        .gal-btn { 
+            pointer-events: auto;
+            padding: 12px 30px; background: rgba(0, 0, 0, 0.7); border: 1px solid var(--primary); color: var(--primary); border-radius: 6px; cursor: pointer; font-family: 'Space Mono', monospace; font-size: 0.8rem; font-weight: bold; transition: all 0.2s; text-transform: uppercase; backdrop-filter: blur(8px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+        .gal-btn:hover { background: var(--primary); color: #000; box-shadow: 0 0 20px var(--primary-glow);}
 
         /* ПНЕВМОГУДОК */
-        .air-horn-container { position: fixed; bottom: 4vh; right: 4vw; pointer-events: auto; z-index: 500; display: flex; flex-direction: column; align-items: center; gap: 8px;}
-        .air-horn-label { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--danger); font-weight: 700; letter-spacing: 3px; text-transform: uppercase; text-shadow: 0 0 8px var(--danger-glow);}
+        .air-horn-container { position: fixed; bottom: 3vh; right: 3vw; pointer-events: auto; z-index: 500; display: flex; flex-direction: column; align-items: center; gap: 5px;}
+        .air-horn-label { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--danger); font-weight: 700; letter-spacing: 3px; text-transform: uppercase; text-shadow: 0 0 8px var(--danger-glow);}
         .air-horn-btn {
-            width: 85px; height: 85px; border-radius: 50%; background: linear-gradient(145deg, #cc2e3d, #e63946);
-            border: 3px solid #fff; box-shadow: 0 10px 30px rgba(230, 57, 70, 0.6), inset 0 2px 5px rgba(255,255,255,0.3);
+            width: 70px; height: 70px; border-radius: 50%; background: linear-gradient(145deg, #cc2e3d, #e63946);
+            border: 2px solid #fff; box-shadow: 0 10px 30px rgba(230, 57, 70, 0.6), inset 0 2px 5px rgba(255,255,255,0.3);
             display: flex; justify-content: center; align-items: center; cursor: pointer; 
-            font-family: 'Montserrat', sans-serif; font-weight: 900; color: #fff; font-size: 0.8rem; letter-spacing: 1px; transition: transform 0.1s;
+            font-family: 'Montserrat', sans-serif; font-weight: 900; color: #fff; font-size: 0.7rem; letter-spacing: 1px; transition: transform 0.1s;
         }
         .air-horn-btn:active { transform: scale(0.9); box-shadow: 0 4px 15px rgba(230, 57, 70, 0.5), inset 0 5px 10px rgba(0,0,0,0.4); }
 
         /* ТЕЛЕМЕТРИЯ */
         .telemetry-toast {
-            position: fixed; bottom: 4vh; left: 4vw; width: 340px; max-width: 80vw;
-            background: rgba(5, 10, 15, 0.85); border: 1px solid var(--border-glass); border-left: 4px solid var(--primary);
-            padding: 18px 20px; border-radius: 8px; backdrop-filter: blur(15px);
+            position: fixed; bottom: 3vh; left: 3vw; width: 300px; max-width: 70vw;
+            background: rgba(5, 10, 15, 0.9); border: 1px solid var(--border-glass); border-left: 3px solid var(--primary);
+            padding: 15px; border-radius: 6px; backdrop-filter: blur(15px);
             box-shadow: 0 15px 35px rgba(0,0,0,0.8);
             font-family: 'Space Mono', monospace; color: #fff; z-index: 999;
             opacity: 0; transform: translateX(-20px); pointer-events: none;
         }
-        .telemetry-toast .tag { font-weight: 900; margin-bottom: 6px; display: inline-block; font-size: 0.8rem;}
-        .telemetry-toast .msg { font-size: 0.85rem; line-height: 1.4; color: #ddd; }
+        .telemetry-toast .tag { font-weight: 900; margin-bottom: 4px; display: inline-block; font-size: 0.75rem;}
+        .telemetry-toast .msg { font-size: 0.8rem; line-height: 1.3; color: #ddd; }
         
         .toast-danger { border-left-color: var(--danger); }
         .toast-danger .tag { color: var(--danger); text-shadow: 0 0 8px var(--danger-glow); }
@@ -238,6 +279,12 @@
     </style>
 </head>
 <body>
+    <!-- ПОРТРЕТНАЯ ЗАГЛУШКА -->
+    <div id="rotate-overlay">
+        <svg viewBox="0 0 24 24"><path d="M16 1H8C6.34 1 5 2.34 5 4V20C5 21.66 6.34 23 8 23H16C17.66 23 19 21.66 19 20V4C19 2.34 17.66 1 16 1ZM17 19H7V5H17V19Z"/></svg>
+        <h2>БАТЯ, ПОВЕРНИ<br>ТЕЛЕФОН</h2>
+        <p style="font-family: 'Montserrat'; color: #8b9bb4; font-size: 0.8rem; margin-top: 10px;">Для корректной работы бортовых систем<br>требуется горизонтальная ориентация.</p>
+    </div>
 
     <audio id="bgm" preload="auto"></audio>
     <audio id="horn-sfx" src="assets/horn.m4a" preload="auto"></audio> 
@@ -247,7 +294,6 @@
     <button id="skip-btn">ПРОПУСТИТЬ ИНТРО ⏭</button>
 
     <div id="intro-cinematic">
-        <!-- Добавлен webkit-playsinline для дуракоустойчивости iOS -->
         <video id="startup-video" src="assets/intro_video.mp4" playsinline webkit-playsinline preload="auto"></video>
         <div id="start-overlay">
             <button class="digital-btn" id="ignition-trigger">ПОЛНЫЙ ВПЕРЕД<br><span>БОРТОВЫЕ СИСТЕМЫ</span></button>
@@ -330,11 +376,12 @@
                 </div>
             </div>
 
+            <!-- ИСПРАВЛЕННАЯ ГАЛЕРЕЯ -->
             <div id="tab-gallery" class="tab-content">
                 <div class="gallery-container">
-                    <div class="card-title" style="margin-bottom: 20px; text-align: center; font-size: 1rem; color: #fff;">БАЗА ДАННЫХ: АРХИВ</div>
                     <div class="gallery-screen" id="gallery-wrapper">
-                        </div>
+                        <!-- Фотки инжектятся сюда -->
+                    </div>
                     <div class="gallery-controls">
                         <button class="gal-btn" id="gal-prev">< НАЗАД</button>
                         <button class="gal-btn" id="gal-next">ВПЕРЕД ></button>
@@ -359,9 +406,9 @@
 
 <script>
     // ==========================================
-    // НАСТРОЙКИ АРХИВА 
+    // ЛОГИКА
     // ==========================================
-    const TOTAL_PHOTOS = 21; // Количество фоток
+    const TOTAL_PHOTOS = 21; 
     const FILE_PREFIX = "archive_"; 
     const FILE_EXT = ".jpg"; 
 
@@ -387,18 +434,12 @@
         imgElement.nextElementSibling.style.display = 'flex';
     };
 
-    // ==========================================
-    // НАСТРОЙКИ ПЛЕЕРА
-    // ==========================================
     const playlist = [
         { src: "track.mp3", artist: "Александр Гросс", title: "40 тонн за спиной" },
         { src: "track2.mp3", artist: "Александр Чурей", title: "Король дорог" },
         { src: "track3.mp3", artist: "Семья", title: "Любимому папе и мужу" }
     ];
 
-    // ==========================================
-    // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ И ЛОГИКА
-    // ==========================================
     const ignitionBtn = document.getElementById('ignition-trigger');
     const skipBtn = document.getElementById('skip-btn');
     const introVideo = document.getElementById('startup-video');
@@ -432,31 +473,20 @@
     }
     initPlayer();
 
-    // 1. Старт системы
     ignitionBtn.addEventListener('click', () => {
         if (document.documentElement.requestFullscreen) {
             document.documentElement.requestFullscreen().catch(()=>{});
         }
-        
-        // УБИВАЕМ СТАРТОВУЮ ПЛАШКУ, ЧТОБЫ ОНА БОЛЬШЕ НЕ МАЯЧИЛА ТЕКСТОМ
         document.getElementById('start-overlay').style.display = 'none';
-        
-        // Фоново прогружаем тяжелые видосы, чтобы мобилка не захлебнулась
         eventVideo.load();
         bgLoop.load();
-
         introVideo.play().catch(e => console.warn("Видео интро не завелось", e));
     });
 
-    // 2. Интро закончилось -> ЗВОНОК
     introVideo.addEventListener('ended', () => {
         if(sequenceSkipped) return;
-        
-        // Сразу убираем кнопку скипа, она тут больше не нужна!
         skipBtn.style.display = 'none';
-        
         gsap.to(introContainer, {opacity: 0, duration: 1, onComplete: () => introContainer.style.display = 'none'});
-        
         bgLoop.play().catch(()=>{});
         gsap.to(bgLoop, {opacity: 1, duration: 2});
         
@@ -465,9 +495,10 @@
         engineSfx.play().catch(()=>{});
         gsap.to(engineSfx, {volume: 0.4, duration: 2}); 
         
+        // ВОТ ЗДЕСЬ Я СКРУТИЛ ГРОМКОСТЬ РИНГТОНА
+        ringtoneSfx.volume = 0.25;
         ringtoneSfx.play().catch(()=>{});
 
-        // МУЗЫКА НА ФОНЕ ИГРАЕТ ТИХО, ПОКА ИДЕТ ЗВОНОК
         bgm.volume = 0.2;
         bgm.play().catch(()=>{});
         audioUI.classList.remove('paused');
@@ -477,26 +508,20 @@
         gsap.fromTo(startBtn, {opacity: 0, scale: 0.9}, {opacity: 1, scale: 1, duration: 1.5, delay: 1});
     });
 
-    // 3. ЖМЕМ ГАЗ (ПРИНЯТЬ ВЫЗОВ)
     startBtn.addEventListener('click', () => {
         gsap.to(bootScreen, {opacity: 0, duration: 0.5, onComplete: () => bootScreen.style.display = 'none'});
-        
         ringtoneSfx.pause();
         ringtoneSfx.currentTime = 0;
 
-        // Делаем музыку и мотор ЕЩЕ ТИШЕ, чтобы слышать голоса на видео
         gsap.to(bgm, {volume: 0.1, duration: 1});
         gsap.to(engineSfx, {volume: 0.15, duration: 1});
 
         eventVideo.style.display = 'block';
-        
-        // СНАЧАЛА PLAY, ЗАТЕМ АНИМАЦИЯ (Обход бага WebKit на iOS)
         eventVideo.play().then(() => {
             gsap.to(eventVideo, {opacity: 1, duration: 0.5});
         }).catch(e => console.warn("Автоплей заблокирован:", e));
     });
 
-    // 4. КОНЕЦ ВИДЕО ЗВОНКА -> ВЫХОД В РЕЙС
     eventVideo.addEventListener('ended', showHUD);
 
     function showHUD() {
@@ -505,7 +530,6 @@
             eventVideo.pause();
         }});
         
-        // Возвращаем музыке и мотору крейсерскую громкость
         gsap.to(bgm, {volume: 0.7, duration: 2});
         gsap.to(engineSfx, {volume: 0.6, duration: 2});
 
@@ -521,7 +545,6 @@
         setTimeout(startTelemetryLoop, 4000);
     }
 
-    // --- КНОПКА СКИПА ---
     skipBtn.addEventListener('click', () => {
         sequenceSkipped = true;
         skipBtn.style.display = 'none';
@@ -546,7 +569,6 @@
         gsap.set('#gps-truck', {left: '100%'});
     });
 
-    // --- ТЕЛЕМЕТРИЯ ---
     const logs = [
         { tag: "[LOGISTICS]", text: "Входящее сообщение от логиста. Вероятность бреда: 99.9%.", type: "toast-danger" },
         { tag: "[ROUTING]", text: "Логист перестроил маршрут через ебеня. Включаю режим игнорирования.", type: "toast-warning" },
@@ -575,7 +597,6 @@
         }, 5000);
     }
 
-    // --- Вкладки с ЗАДЕРЖКОЙ ---
     window.switchTab = function(tabId) {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         event.target.classList.add('active');
@@ -599,28 +620,26 @@
         }, 1500);
     };
 
-    // --- СПЕЦЭФФЕКТ ЮБИЛЕЯ (САЛЮТ) ---
     function triggerJubileeSalute() {
         const titleEl = document.getElementById('age-title');
         titleEl.innerText = "С ЮБИЛЕЕМ, БАТЯ! 40 ЛЕТ!";
         gsap.to(titleEl, {color: '#FFBB00', textShadow: '0 0 40px #FFBB00', duration: 1, yoyo: true, repeat: -1});
 
-        var duration = 15 * 1000;
-        var animationEnd = Date.now() + duration;
-        var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 999999 };
+        const duration = 15 * 1000;
+        const animationEnd = Date.now() + duration;
+        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 999999 };
 
         function randomInRange(min, max) { return Math.random() * (max - min) + min; }
 
-        var interval = setInterval(function() {
-            var timeLeft = animationEnd - Date.now();
+        const interval = setInterval(function() {
+            const timeLeft = animationEnd - Date.now();
             if (timeLeft <= 0) return clearInterval(interval);
-            var particleCount = 50 * (timeLeft / duration);
+            const particleCount = 50 * (timeLeft / duration);
             confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
             confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
         }, 250);
     }
 
-    // --- Таймер возраста ---
     const birth = new Date('1986-05-16T00:00:00'); 
 
     function updateAge() {
@@ -659,19 +678,17 @@
     }
     updateAge();
 
-    // --- Гудок ---
     document.getElementById('horn-btn').addEventListener('click', () => {
         const s = document.getElementById('horn-sfx');
         s.currentTime = 0; 
         s.play().catch(()=>{});
 
-        gsap.fromTo("#main-app", 
-            {x: -12, y: -12}, 
-            {x: 12, y: 12, duration: 0.05, repeat: 12, yoyo: true, clearProps: "all"}
+        gsap.fromTo(".glass-card", 
+            {x: -5, y: -5}, 
+            {x: 5, y: 5, duration: 0.05, repeat: 10, yoyo: true, clearProps: "all"}
         );
     });
 
-    // --- Плеер (Кнопки и переключение) ---
     const btnPlayPause = document.getElementById('btn-play-pause');
 
     function switchTrack(direction) {
@@ -708,7 +725,6 @@
         switchTrack('next');
     });
 
-    // --- Галерея ---
     let currentGalleryItem = 0;
     
     function updateGallery(direction) {
