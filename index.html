@@ -543,25 +543,34 @@
         if (window.innerHeight > window.innerWidth) {
             // ВЕРТИКАЛЬНО (АХТУНГ)
             rotateOverlay.style.display = 'flex';
-            resumeBtn.style.display = 'none';
             rotateTitle.style.display = 'block';
             rotateDesc.style.display = 'block';
             rotateIcon.style.display = 'block';
+            resumeBtn.style.display = 'none';
             
-            wasPlayingBeforeRotate = isPlaying;
+            // Жесткие тормоза применяем ТОЛЬКО если уже вошли в интерфейс
+            if (sysActive) {
+                wasPlayingBeforeRotate = isPlaying;
 
-            // Глушим всё
-            bgm.pause(); engineSfx.pause(); ringtoneSfx.pause(); 
-            bgLoop.pause(); eventVideo.pause(); introVideo.pause();
-            audioUI.classList.add('paused');
+                // Глушим фоновые звуки дашборда
+                bgm.pause(); engineSfx.pause(); 
+                bgLoop.pause(); eventVideo.pause();
+                audioUI.classList.add('paused');
+            }
+            // Если !sysActive (интро или звонок) — они просто играют дальше под черным экраном
         } else {
             // ГОРИЗОНТАЛЬНО (ВСЁ ОК)
             if (rotateOverlay.style.display === 'flex') {
-                // Если мы только что повернули обратно — требуем тапнуть для возобновления (Политика браузеров)
-                rotateTitle.style.display = 'none';
-                rotateDesc.style.display = 'none';
-                rotateIcon.style.display = 'none';
-                resumeBtn.style.display = 'block';
+                if (sysActive) {
+                    // Если мы в дашборде, требуем тапнуть для возобновления звука (Политика браузеров)
+                    rotateTitle.style.display = 'none';
+                    rotateDesc.style.display = 'none';
+                    rotateIcon.style.display = 'none';
+                    resumeBtn.style.display = 'block';
+                } else {
+                    // Если еще не вошли, просто убираем плашку без кнопок продолжения
+                    rotateOverlay.style.display = 'none';
+                }
             }
         }
     }
@@ -577,10 +586,6 @@
             if (wasPlayingBeforeRotate) { bgm.play().catch(()=>{}); audioUI.classList.remove('paused'); }
             if (engineSfx.volume > 0) engineSfx.play().catch(()=>{});
             if (bgLoop.style.opacity > 0) bgLoop.play().catch(()=>{});
-        } else {
-            // Если мы оборвали интро или звонок
-            if (introContainer.style.display !== 'none' && !sequenceSkipped) introVideo.play().catch(()=>{});
-            if (bootScreen.style.display === 'flex') ringtoneSfx.play().catch(()=>{});
         }
     });
 
