@@ -293,7 +293,7 @@
         .gal-btn:hover { background: var(--primary); color: #000; box-shadow: 0 0 20px var(--primary-glow);}
 
         /* ПНЕВМОГУДОК */
-        .air-horn-container { position: fixed; bottom: 3vh; right: 3vw; pointer-events: auto; z-index: 500; display: flex; flex-direction: column; align-items: center; gap: 5px;}
+        .air-horn-container { position: fixed; bottom: 3vh; right: 3vw; pointer-events: auto; z-index: 500; display: none; opacity: 0; transform: scale(0.8); flex-direction: column; align-items: center; gap: 5px;}
         .air-horn-label { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--danger); font-weight: 700; letter-spacing: 3px; text-transform: uppercase; text-shadow: 0 0 8px var(--danger-glow);}
         .air-horn-btn {
             width: 70px; height: 70px; border-radius: 50%; background: linear-gradient(145deg, #cc2e3d, #e63946);
@@ -833,6 +833,15 @@
         gsap.fromTo(loader, {opacity: 0}, {opacity: 1, duration: 0.2});
         bgLoop.style.filter = (tabId === 'dashcam') ? 'brightness(1)' : 'brightness(0.6)';
 
+        // Логика пневмогудка: показываем только на дороге
+        const hornContainer = document.querySelector('.air-horn-container');
+        if (tabId === 'dashcam') {
+            hornContainer.style.display = 'flex';
+            gsap.to(hornContainer, {opacity: 1, scale: 1, duration: 0.3, delay: 0.2, ease: "back.out(1.5)"});
+        } else {
+            gsap.to(hornContainer, {opacity: 0, scale: 0.8, duration: 0.2, onComplete: () => hornContainer.style.display = 'none'});
+        }
+
         setTimeout(() => {
             gsap.to(loader, {opacity: 0, duration: 0.2, onComplete: () => {
                 loader.style.display = 'none';
@@ -869,18 +878,18 @@
         const s = document.getElementById('horn-sfx');
         s.currentTime = 0; s.play().catch(()=>{});
         
-        // Убиваем все предыдущие анимации, чтобы при спаме не было конфликтов стилей (от этого было мыло)
+        // Убиваем все предыдущие анимации, чтобы при спаме не было конфликтов стилей
         gsap.killTweensOf("#hud-container");
         gsap.killTweensOf("#bg-loop");
         gsap.killTweensOf("#flash-overlay");
         
-        // Ударная волна по всему интерфейсу. Ограничил clearProps, чтобы не удалять базовый CSS верстки!
+        // Ударная волна по всему интерфейсу (без размытия, чтобы GPU не сдох)
         gsap.fromTo("#hud-container", 
-            { scale: 0.95, filter: 'blur(4px)', x: -10, y: -10 }, 
-            { scale: 1, filter: 'blur(0px)', x: 10, y: 10, duration: 0.05, repeat: 11, yoyo: true, clearProps: "transform,filter", ease: "sine.inOut" }
+            { scale: 0.95, x: -12, y: -12 }, 
+            { scale: 1, x: 12, y: 12, duration: 0.05, repeat: 11, yoyo: true, clearProps: "transform", ease: "sine.inOut" }
         );
         
-        // Дергаем фоновое видео
+        // Дергаем фоновое видео (тут оставим скачок яркости, это дешевле для видяхи, чем блюр)
         gsap.fromTo("#bg-loop",
             { scale: 1.1, filter: 'brightness(2) contrast(1.5)' },
             { scale: 1, filter: 'brightness(0.6) contrast(1)', duration: 1, clearProps: "transform,filter", ease: 'power3.out' }
