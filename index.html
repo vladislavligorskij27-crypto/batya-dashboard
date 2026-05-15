@@ -468,6 +468,7 @@
     // HAPTIC ENGINE (ТАКТИЛЬНАЯ ОТДАЧА СИСТЕМЫ)
     // ==========================================
     let engineRumble;
+    let engineRumbleTimeout;
     const Haptics = {
         // Легкий щелчок
         light: () => { if (navigator.vibrate) navigator.vibrate(10); },
@@ -491,7 +492,7 @@
             navigator.vibrate([300, 50, 500, 50, 800]);
             
             // Фоновый гул стартует с задержкой, когда пройдет удар
-            setTimeout(() => {
+            engineRumbleTimeout = setTimeout(() => {
                 engineRumble = setInterval(() => {
                     if (navigator.vibrate) navigator.vibrate([30, 50]); 
                 }, 100); 
@@ -499,6 +500,7 @@
         },
         // СТОП ИНТРО
         stopIntro: () => {
+            clearTimeout(engineRumbleTimeout); // Убиваем таймаут, если нажали скип до его запуска!
             clearInterval(engineRumble);
             if (navigator.vibrate) navigator.vibrate(0); // Жестко прерываем любую активную вибрацию
         }
@@ -717,7 +719,7 @@
     }
 
     skipBtn.addEventListener('click', () => {
-        Haptics.stopIntro(); // <-- Хард стоп гула если скипнули
+        Haptics.stopIntro(); // <-- Хард стоп гула если скипнули (теперь с убийством таймаута)
         sequenceSkipped = true;
         sysActive = true;
         skipBtn.style.display = 'none';
@@ -879,17 +881,10 @@
         s.currentTime = 0; s.play().catch(()=>{});
         
         // Убиваем все предыдущие анимации, чтобы при спаме не было конфликтов стилей
-        gsap.killTweensOf("#hud-container");
         gsap.killTweensOf("#bg-loop");
         gsap.killTweensOf("#flash-overlay");
         
-        // Ударная волна по всему интерфейсу (без размытия, чтобы GPU не сдох)
-        gsap.fromTo("#hud-container", 
-            { scale: 0.95, x: -12, y: -12 }, 
-            { scale: 1, x: 12, y: 12, duration: 0.05, repeat: 11, yoyo: true, clearProps: "transform", ease: "sine.inOut" }
-        );
-        
-        // Дергаем фоновое видео (тут оставим скачок яркости, это дешевле для видяхи, чем блюр)
+        // Дергаем фоновое видео (тут оставим скачок яркости, это дешевле для видяхи)
         gsap.fromTo("#bg-loop",
             { scale: 1.1, filter: 'brightness(2) contrast(1.5)' },
             { scale: 1, filter: 'brightness(0.6) contrast(1)', duration: 1, clearProps: "transform,filter", ease: 'power3.out' }
