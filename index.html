@@ -29,10 +29,11 @@
         }
         
         body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%;
+            margin: 0; padding: 0; width: 100%; height: 100vh; height: 100dvh;
             background-color: #000; color: #fff;
             font-family: 'Montserrat', sans-serif;
             overflow: hidden; user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         /* ----------------------------------------------------
@@ -593,6 +594,7 @@
     // ИВЕНТЫ СТАРТА И ЗВОНКА
     // ==========================================
     ignitionBtn.addEventListener('click', () => {
+        if (navigator.vibrate) navigator.vibrate(50); // Легкий фидбек на старт
         if (document.documentElement.requestFullscreen) { document.documentElement.requestFullscreen().catch(()=>{}); }
         document.getElementById('start-overlay').style.display = 'none';
         eventVideo.load(); bgLoop.load();
@@ -628,6 +630,7 @@
     });
 
     startBtn.addEventListener('click', () => {
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]); // Двойной короткий вибро на поднятие трубки
         bootScreen.classList.remove('ringing-active');
         gsap.to(bootScreen, {opacity: 0, duration: 0.5, onComplete: () => bootScreen.style.display = 'none'});
         
@@ -755,6 +758,7 @@
     // ДОП ИНТЕРАКТИВ (ФАРЫ)
     // ==========================================
     document.getElementById('flash-btn').addEventListener('click', () => {
+        if (navigator.vibrate) navigator.vibrate(30); // Щелчок тумблера
         gsap.fromTo('#flash-overlay', {opacity: 0.9}, {opacity: 0, duration: 0.4, ease: 'power2.out'});
     });
 
@@ -806,6 +810,7 @@
         const s = document.getElementById('horn-sfx');
         s.currentTime = 0; s.play().catch(()=>{});
         gsap.fromTo(".glass-card", {x: -5, y: -5}, {x: 5, y: 5, duration: 0.05, repeat: 10, yoyo: true, clearProps: "all"});
+        if (navigator.vibrate) navigator.vibrate([200, 100, 200]); // Мощная вибрация аля фура
     });
 
     const btnPlayPause = document.getElementById('btn-play-pause');
