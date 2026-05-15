@@ -153,7 +153,7 @@
         .tab-btn { background: transparent; border: none; color: var(--text-muted); padding: 8px 16px; font-family: 'Space Mono', monospace; font-size: 0.8rem; font-weight: 700; cursor: pointer; text-transform: uppercase; border-radius: 4px; transition: 0.3s; }
         .tab-btn.active { color: #000; background: var(--primary); box-shadow: 0 0 15px var(--primary-glow); }
         
-        /* ДОБАВЛЕНО: Физический вес для всех кликабельных элементов */
+        /* Физический вес для всех кликабельных элементов */
         .tab-btn:active, .gal-btn:active, .digital-btn:active, .start-btn:active, .btn-play:active, .btn-skip:active, .flash-lights-btn:active { 
             transform: scale(0.93); transition: transform 0.05s; 
         }
@@ -467,21 +467,41 @@
     // ==========================================
     // HAPTIC ENGINE (ТАКТИЛЬНАЯ ОТДАЧА СИСТЕМЫ)
     // ==========================================
+    let engineRumble;
     const Haptics = {
-        // Легкий щелчок (для кнопок плеера, галереи)
+        // Легкий щелчок
         light: () => { if (navigator.vibrate) navigator.vibrate(10); },
-        // Мягкий тумблер (для вкладок, как просил — легкий, но ощутимый)
+        // Мягкий тумблер
         tab: () => { if (navigator.vibrate) navigator.vibrate([15, 30, 15]); },
-        // Тяжелый тумблер (фары)
+        // Тяжелый тумблер
         heavy: () => { if (navigator.vibrate) navigator.vibrate(40); },
-        // Запуск движка (вибрируем с перерывами)
+        // Запуск движка (кнопка)
         engine: () => { if (navigator.vibrate) navigator.vibrate([80, 50, 120, 50, 200]); },
-        // Обычный алерт (логи)
+        // Алерт
         info: () => { if (navigator.vibrate) navigator.vibrate([30, 50, 30]); },
-        // Тревога (радар, плохие логи)
+        // Тревога
         warning: () => { if (navigator.vibrate) navigator.vibrate([50, 50, 50, 50, 150]); },
-        // Пиздец (гудок) - массивная, зубодробительная серия вибраций (максимум что тянет браузер)
-        horn: () => { if (navigator.vibrate) navigator.vibrate([300, 50, 400, 50, 500, 50, 600, 50, 800]); }
+        // Пиздец (гудок) - Слегка урезали тайминги, чтобы WebView не подавился, но все равно жестко
+        horn: () => { if (navigator.vibrate) navigator.vibrate([250, 50, 400, 50, 500]); },
+        
+        // ВЫСТРЕЛ ИНТРО (Как просил: массивный старт и долгий гул)
+        startIntro: () => {
+            if (!navigator.vibrate) return;
+            // Ударный пуск движка (длится примерно 1 секунду)
+            navigator.vibrate([300, 50, 500, 50, 800]);
+            
+            // Фоновый гул стартует с задержкой, когда пройдет удар
+            setTimeout(() => {
+                engineRumble = setInterval(() => {
+                    if (navigator.vibrate) navigator.vibrate([30, 50]); 
+                }, 100); 
+            }, 1800);
+        },
+        // СТОП ИНТРО
+        stopIntro: () => {
+            clearInterval(engineRumble);
+            if (navigator.vibrate) navigator.vibrate(0); // Жестко прерываем любую активную вибрацию
+        }
     };
 
     // ==========================================
@@ -620,7 +640,7 @@
     // ИВЕНТЫ СТАРТА И ЗВОНКА
     // ==========================================
     ignitionBtn.addEventListener('click', () => {
-        Haptics.engine(); // Заводка двигателя - тактильный фидбек
+        Haptics.startIntro(); // <-- Полная магия интро-тряски пошла
         if (document.documentElement.requestFullscreen) { document.documentElement.requestFullscreen().catch(()=>{}); }
         document.getElementById('start-overlay').style.display = 'none';
         eventVideo.load(); bgLoop.load();
@@ -628,6 +648,7 @@
     });
 
     introVideo.addEventListener('ended', () => {
+        Haptics.stopIntro(); // <-- Глушим мотор по окончании видео
         if(sequenceSkipped) return;
         skipBtn.style.display = 'none';
         gsap.to(introContainer, {opacity: 0, duration: 1, onComplete: () => introContainer.style.display = 'none'});
@@ -696,6 +717,7 @@
     }
 
     skipBtn.addEventListener('click', () => {
+        Haptics.stopIntro(); // <-- Хард стоп гула если скипнули
         sequenceSkipped = true;
         sysActive = true;
         skipBtn.style.display = 'none';
@@ -749,7 +771,7 @@
         toastTag.innerText = tag;
         toastMsg.innerText = text;
         
-        // ДОБАВЛЕНО: Тактильный удар при входящем сообщении
+        // Тактильный удар при входящем сообщении
         if (type === 'toast-danger' || type === 'toast-warning') {
             Haptics.warning();
         } else {
@@ -793,7 +815,7 @@
     // ДОП ИНТЕРАКТИВ (ФАРЫ)
     // ==========================================
     document.getElementById('flash-btn').addEventListener('click', () => {
-        Haptics.heavy(); // Заменили старый хардкод
+        Haptics.heavy(); 
         gsap.fromTo('#flash-overlay', {backgroundColor: '#fff', opacity: 0.9}, {opacity: 0, duration: 0.4, ease: 'power2.out'});
     });
 
@@ -847,22 +869,27 @@
         const s = document.getElementById('horn-sfx');
         s.currentTime = 0; s.play().catch(()=>{});
         
-        // Ударная волна по всему интерфейсу (scale down, blur и жесткая тряска)
+        // Убиваем все предыдущие анимации, чтобы при спаме не было конфликтов стилей (от этого было мыло)
+        gsap.killTweensOf("#hud-container");
+        gsap.killTweensOf("#bg-loop");
+        gsap.killTweensOf("#flash-overlay");
+        
+        // Ударная волна по всему интерфейсу. Ограничил clearProps, чтобы не удалять базовый CSS верстки!
         gsap.fromTo("#hud-container", 
-            { scale: 0.95, filter: 'blur(4px)', x: -15, y: -10 }, 
-            { scale: 1, filter: 'blur(0px)', x: 15, y: 10, duration: 0.05, repeat: 15, yoyo: true, clearProps: "all", ease: "none" }
+            { scale: 0.95, filter: 'blur(4px)', x: -10, y: -10 }, 
+            { scale: 1, filter: 'blur(0px)', x: 10, y: 10, duration: 0.05, repeat: 11, yoyo: true, clearProps: "transform,filter", ease: "sine.inOut" }
         );
         
-        // Дергаем фоновое видео (аля глитч от звукового давления)
+        // Дергаем фоновое видео
         gsap.fromTo("#bg-loop",
             { scale: 1.1, filter: 'brightness(2) contrast(1.5)' },
-            { scale: 1, filter: 'brightness(0.6) contrast(1)', duration: 1, ease: 'power3.out' }
+            { scale: 1, filter: 'brightness(0.6) contrast(1)', duration: 1, clearProps: "transform,filter", ease: 'power3.out' }
         );
 
         // Вспышка адреналина (красный блик)
         gsap.fromTo('#flash-overlay', {backgroundColor: '#FF3366', opacity: 0.35}, {opacity: 0, duration: 0.8, ease: 'power2.out'});
         
-        Haptics.horn(); // Мощный асинхронный паттерн вибрации - телефон реально пойдет ходуном
+        Haptics.horn(); 
     });
 
     const btnPlayPause = document.getElementById('btn-play-pause');
